@@ -15,6 +15,13 @@ const createWindow = (): void => {
   const mainWindow = new BrowserWindow({
     height: 600,
     width: 800,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: process.platform === 'win32' ? {
+      color: '#212529',
+      symbolColor: '#ffffff',
+      height: 44
+    } : false,
+    trafficLightPosition: { x: 15, y: 15 }, // Adjusted for 44px height
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
