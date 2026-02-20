@@ -6,46 +6,44 @@ This project follows Electron's recommended security practices by separating the
 
 - **Main Process (`src/main/index.ts`):**
   - Manages application lifecycle.
-  - Controls native OS features.
-  - Can access Node.js APIs directly.
-  - Spawns the main window.
+  - Handles sensitive API integrations (Azure DevOps, GitHub Copilot).
+  - Manages persistent state using `electron-store`.
 - **Preload Script (`src/main/preload.ts`):**
-  - A secure bridge between the main and renderer processes.
-  - Runs in a renderer context but has access to Node.js APIs.
-  - Exposes APIs to the renderer using `contextBridge.exposeInMainWorld`.
+  - Exposes a secure `electronAPI` bridge to the renderer.
+  - Provides methods for settings management and tool-specific backend actions.
 - **Renderer Process (`src/renderer/renderer.tsx`):**
-  - The UI (React).
-  - Runs in a sandboxed environment for security.
-  - Accesses OS/Main features only through the bridge provided by the preload script.
+  - Built with React and TypeScript.
+  - Uses `HashRouter` for navigation between tools.
+  - Renders Markdown results using `react-markdown`.
 
-## Inter-Process Communication (IPC)
+## Configuration Management
 
-When the renderer needs to perform a task that requires Node.js (e.g., interacting with the file system or executing shell commands), it should use IPC.
+We use `electron-store` to persist user settings (like Azure DevOps PATs) locally on the machine. 
+- **Encryption:** Settings are stored in the default Electron user data path.
+- **IPC Access:** The renderer fetches and saves settings through the `get-settings` and `save-settings` IPC handlers.
 
-1.  **Define IPC Handler in Main Process:**
-    ```typescript
-    import { ipcMain } from 'electron';
-    ipcMain.handle('some-action', async (event, data) => {
-      // Perform action in Node.js
-      return result;
-    });
-    ```
+## External Integrations
 
-2.  **Expose IPC Method in Preload Script:**
-    ```typescript
-    import { contextBridge, ipcRenderer } from 'electron';
-    contextBridge.exposeInMainWorld('electronAPI', {
-      doSomething: (data) => ipcRenderer.invoke('some-action', data)
-    });
-    ```
+### Azure DevOps
+- **Library:** `azure-devops-node-api`
+- **Method:** Uses Personal Access Tokens (PAT) via the Work Item Tracking API.
+- **Scope:** Primarily fetches work item details (ID, Title, Description, Acceptance Criteria).
 
-3.  **Use in React Component:**
-    ```typescript
-    const result = await (window as any).electronAPI.doSomething(data);
-    ```
+### GitHub Copilot
+- **Library:** `@github/copilot-sdk`
+- **Authentication:** Relies on the machine's local GitHub CLI authentication (`gh auth login`).
+- **Generation:** Uses a conversation session to pass ticket context and custom prompts to generate structured test cases.
 
-## Development Workflow
+## Technical Decisions
 
-- **Styling:** Vanilla CSS is preferred for maximum flexibility. Global styles should be placed in `src/renderer/index.css`.
-- **Components:** React components should be modular and placed in `src/renderer/components`.
-- **Types:** TypeScript is used throughout to ensure type safety. Shared types can be kept in a `src/types` directory.
+### Hybrid ESM/CommonJS Approach
+The project is configured as CommonJS (`"type": "commonjs"`) to maintain compatibility with standard Electron Forge/Webpack templates. However, to support modern ESM-only libraries like `electron-store` and `@github/copilot-sdk`, we use:
+1. **Dynamic `import()`**: For `electron-store` to load the module asynchronously.
+2. **`eval('import(...)')` Workaround**: For `@github/copilot-sdk` to bypass Webpack's static analysis, ensuring the library is loaded as a native ESM module by Node.js at runtime.
+
+## Inter-Process Communication (IPC) Handlers
+
+- `get-settings`: Returns the current application configuration.
+- `save-settings`: Updates and persists configuration.
+- `fetch-ticket`: Retrieves work item data from Azure DevOps.
+- `generate-test-cases`: Interfaces with Copilot to produce Markdown test plans.

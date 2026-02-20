@@ -2,6 +2,7 @@
   "name": "devops-toolkit",
   "productName": "devops-toolkit",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "My Electron application description",
   "main": ".webpack/main",
   "private": true,
@@ -41,14 +42,20 @@
     "node-loader": "^2.1.0",
     "style-loader": "^3.3.4",
     "ts-loader": "^9.5.4",
-    "typescript": "~4.5.4"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
+    "@github/copilot-sdk": "^0.1.25",
     "@popperjs/core": "^2.11.8",
+    "azure-devops-node-api": "^15.1.2",
     "bootstrap": "^5.3.8",
     "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^11.0.2",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.13.0",
+    "remark-gfm": "^4.0.1"
   }
 }

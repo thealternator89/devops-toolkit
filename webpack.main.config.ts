@@ -13,8 +13,14 @@ export const mainConfig: Configuration = {
   module: {
     rules,
   },
+  target: 'electron-main',
   plugins,
   resolve: {
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json'],
+    conditionNames: ['import', 'node'],
+  },
+  node: {
+    __dirname: true,
+    __filename: true,
   },
 };

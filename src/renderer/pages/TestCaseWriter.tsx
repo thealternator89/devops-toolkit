@@ -1,0 +1,162 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const TestCaseWriter: React.FC = () => {
+  const navigate = useNavigate();
+  const [ticketId, setTicketId] = useState('');
+  const [context, setContext] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [ticketData, setTicketData] = useState<any>(null);
+  const [testCases, setTestCases] = useState<string>('');
+  const [error, setError] = useState<string>('');
+
+  const handleGenerate = async () => {
+    if (!ticketId) {
+      setError('Please enter a ticket ID.');
+      return;
+    }
+
+    setError('');
+    setIsGenerating(true);
+    setTestCases('');
+    setTicketData(null);
+
+    try {
+      // 1. Fetch Ticket Data
+      const fetchedTicket = await (window as any).electronAPI.fetchTicket(ticketId);
+      setTicketData(fetchedTicket);
+
+      // 2. Generate Test Cases using Copilot SDK
+      const generatedResult = await (window as any).electronAPI.generateTestCases(fetchedTicket, context);
+      setTestCases(generatedResult);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'An error occurred during generation.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="container mt-4">
+      <div className="mb-4">
+        <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/')}>
+          <i className="fas fa-arrow-left me-2"></i>
+          Back to Menu
+        </button>
+      </div>
+
+      <div className="row">
+        {/* Left Column: Input Form */}
+        <div className="col-md-4">
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-primary text-white">
+              <h5 className="mb-0">Ticket Details</h5>
+            </div>
+            <div className="card-body">
+              {error && <div className="alert alert-danger">{error}</div>}
+              
+              <div className="mb-3">
+                <label className="form-label">Ticket ID (Azure DevOps)</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="e.g., 12345"
+                  value={ticketId}
+                  onChange={(e) => setTicketId(e.target.value)}
+                  disabled={isGenerating}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Additional Context (Optional)</label>
+                <textarea 
+                  className="form-control" 
+                  rows={4}
+                  placeholder="e.g., focus on edge cases or accessibility requirements..."
+                  value={context}
+                  onChange={(e) => setContext(e.target.value)}
+                  disabled={isGenerating}
+                />
+              </div>
+
+              <button 
+                className="btn btn-primary w-100" 
+                onClick={handleGenerate}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-magic me-2"></i>
+                    Generate Test Cases
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {ticketData && (
+            <div className="card shadow-sm border-info">
+              <div className="card-header bg-info text-white">
+                <h6 className="mb-0">Fetched Ticket: #{ticketData.id}</h6>
+              </div>
+              <div className="card-body">
+                <h6>{ticketData.title}</h6>
+                <div 
+                  className="text-muted small overflow-auto" 
+                  style={{ maxHeight: '200px' }}
+                  dangerouslySetInnerHTML={{ __html: ticketData.description }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Results */}
+        <div className="col-md-8">
+          <div className="card shadow-sm h-100 min-vh-50">
+            <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">Generated Test Cases</h5>
+              {testCases && (
+                <button 
+                  className="btn btn-sm btn-outline-light" 
+                  onClick={() => navigator.clipboard.writeText(testCases)}
+                >
+                  <i className="fas fa-copy me-1"></i>
+                  Copy
+                </button>
+              )}
+            </div>
+            <div className="card-body overflow-auto bg-light" style={{ maxHeight: '600px' }}>
+              {testCases ? (
+                <div className="markdown-content">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{testCases}</ReactMarkdown>
+                </div>
+              ) : (
+                <div className="text-center py-5 text-muted">
+                  {isGenerating ? (
+                    <div className="py-5">
+                      <div className="spinner-grow text-primary" role="status"></div>
+                      <p className="mt-3">Asking Copilot to write tests...</p>
+                    </div>
+                  ) : (
+                    <p>Enter a ticket ID and click "Generate" to see the results here.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TestCaseWriter;
