@@ -5,7 +5,7 @@ const Menu: React.FC = () => {
   return (
     <div className="container mt-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">DevOps Toolkit Menu</h2>
+        <div></div>
         <Link to="/settings" className="btn btn-outline-secondary">
           <i className="fas fa-cog me-2"></i>
           Settings

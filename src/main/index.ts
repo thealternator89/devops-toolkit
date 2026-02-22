@@ -86,8 +86,8 @@ ipcMain.handle('add-child-task', async (event, parentTicketId, title, descriptio
 const createWindow = (): void => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    height: 600,
-    width: 800,
+    height: 850,
+    width: 1200,
     titleBarStyle: 'hidden',
     titleBarOverlay: process.platform === 'win32' ? {
       color: '#212529',
