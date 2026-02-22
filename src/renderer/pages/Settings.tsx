@@ -7,6 +7,9 @@ const Settings: React.FC = () => {
   const [azureProject, setAzureProject] = useState('');
   const [azurePat, setAzurePat] = useState('');
   const [copilotToken, setCopilotToken] = useState('');
+  const [confluenceUrl, setConfluenceUrl] = useState('');
+  const [confluenceUser, setConfluenceUser] = useState('');
+  const [confluenceToken, setConfluenceToken] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [authStatus, setAuthStatus] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(false);
@@ -21,6 +24,9 @@ const Settings: React.FC = () => {
           setAzureProject(settings.azureProject || '');
           setAzurePat(settings.azurePat || '');
           setCopilotToken(settings.copilotToken || '');
+          setConfluenceUrl(settings.confluenceUrl || '');
+          setConfluenceUser(settings.confluenceUser || '');
+          setConfluenceToken(settings.confluenceToken || '');
         }
       } catch (error) {
         console.error('Failed to load settings:', error);
@@ -36,7 +42,10 @@ const Settings: React.FC = () => {
         azureOrg,
         azureProject,
         azurePat,
-        copilotToken
+        copilotToken,
+        confluenceUrl,
+        confluenceUser,
+        confluenceToken
       });
       setStatusMessage('Settings saved successfully!');
       setTimeout(() => setStatusMessage(''), 3000);
@@ -109,6 +118,39 @@ const Settings: React.FC = () => {
                 value={azurePat}
                 onChange={(e) => setAzurePat(e.target.value)}
               />
+            </div>
+
+            <h5 className="mb-3 border-bottom pb-2 mt-4">Confluence Configuration</h5>
+            <div className="mb-3">
+              <label className="form-label">Confluence URL</label>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="https://your-domain.atlassian.net/wiki" 
+                value={confluenceUrl}
+                onChange={(e) => setConfluenceUrl(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Email / User (Optional)</label>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="user@example.com" 
+                value={confluenceUser}
+                onChange={(e) => setConfluenceUser(e.target.value)}
+              />
+              <div className="form-text">Leave blank if using a Personal Access Token (Bearer Auth). Enter email if using an Atlassian API Token (Basic Auth).</div>
+            </div>
+            <div className="mb-4">
+              <label className="form-label">API Token</label>
+              <input 
+                type="password" 
+                className="form-control" 
+                value={confluenceToken}
+                onChange={(e) => setConfluenceToken(e.target.value)}
+              />
+              <div className="form-text">Your API token or Personal Access Token (PAT).</div>
             </div>
 
             <h5 className="mb-3 border-bottom pb-2 mt-4">GitHub Copilot Configuration</h5>

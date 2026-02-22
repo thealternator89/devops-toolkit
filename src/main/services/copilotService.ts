@@ -61,6 +61,45 @@ export class CopilotService {
     }
   }
 
+  async generateStories(pageData: any, additionalContext: string) {
+    try {
+      const session = await this.getSession();
+      
+      const prompt = `
+        Generate a set of user stories based on the following functional requirements from a Confluence page.
+        
+        Page Title: ${pageData.title}
+        Page Content: ${pageData.body}
+        
+        Additional Context: ${additionalContext || 'None provided'}
+        
+        Please output ONLY a valid JSON array of objects, with no markdown formatting or other text.
+        Each object should have the following properties:
+        - "title": (string) The title of the story
+        - "description": (string) Description. This should contain a statement in the format "As a... I want to... So that..." followed by 2 blank lines and then a longer description of the changes required for story.
+        - "acceptanceCriteria": (string) Formatted as a list. Use markdown within the string with \\n for newlines.
+        - "notes": (string) Any additional notes or assumptions (Optional, can be empty)
+      `;
+
+      // Send message and wait for assistant to finish
+      const response = await session.sendAndWait({ prompt });
+      const rawContent = response?.data?.content || '[]';
+      
+      try {
+        // Attempt to extract JSON from markdown code block if present
+        const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+        const jsonString = jsonMatch ? jsonMatch[1] : rawContent.trim();
+        return JSON.parse(jsonString);
+      } catch (e) {
+        console.error('Failed to parse JSON from Copilot response:', rawContent);
+        throw new Error('Failed to parse stories from Copilot. The output was not valid JSON.');
+      }
+    } catch (error) {
+      console.error('Error generating stories:', error);
+      throw error;
+    }
+  }
+
   async cleanup() {
     if (this.session) {
       await this.session.destroy();

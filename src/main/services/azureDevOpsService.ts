@@ -28,7 +28,7 @@ export class AzureDevOpsService {
         id: workItem.id,
         title: workItem.fields['System.Title'],
         description: workItem.fields['System.Description'],
-        acceptanceCriteria: workItem.fields['Microsoft.VSTS.TCM.AcceptanceCriteria'],
+        acceptanceCriteria: workItem.fields['Microsoft.VSTS.Common.AcceptanceCriteria'],
         project: workItem.fields['System.TeamProject']
       };
     } catch (error) {
@@ -82,4 +82,36 @@ export class AzureDevOpsService {
     
     return witApi.createWorkItem(undefined, document as any, project, 'Task');
   }
+
+  async createProductBacklogItem(parentTicketId: string, title: string, description: string, acceptanceCriteria: string) {
+    const witApi = await this.getApi();
+    
+    const parentWorkItem = await witApi.getWorkItem(parseInt(parentTicketId));
+    if (!parentWorkItem || !parentWorkItem.fields) {
+      throw new Error('Parent work item not found.');
+    }
+    
+    const project = parentWorkItem.fields['System.TeamProject'];
+    const parentUrl = parentWorkItem.url;
+    
+    const document = [
+      { op: 'add', path: '/fields/System.Title', value: title },
+      { op: 'add', path: '/fields/System.Description', value: description },
+      { op: 'add', path: '/multilineFieldsFormat/System.Description', value: 'Markdown' },
+      { op: 'add', path: '/fields/Microsoft.VSTS.Common.AcceptanceCriteria', value: acceptanceCriteria },
+      { op: 'add', path: '/multilineFieldsFormat/Microsoft.VSTS.Common.AcceptanceCriteria', value: 'Markdown' },
+      {
+        op: 'add',
+        path: '/relations/-',
+        value: {
+          rel: 'System.LinkTypes.Hierarchy-Reverse',
+          url: parentUrl,
+          attributes: { comment: "Added via Copilot story generation" }
+        }
+      }
+    ];
+    
+    return witApi.createWorkItem(undefined, document as any, project, 'Product Backlog Item');
+  }
 }
+

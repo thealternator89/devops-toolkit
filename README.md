@@ -15,9 +15,16 @@ TypeScript using Electron Forge.
   - Integration with **GitHub Copilot SDK** to automatically generate
     comprehensive test cases based on ticket context.
   - Markdown support with GFM (tables, lists, etc.) for rendered results.
-- **Persistent Settings**: Securely store Azure DevOps credentials and project
-  configuration locally, and actively check the status of local GitHub Copilot
-  CLI authentication.
+- **Story Writer**:
+  - Integration with **Confluence REST API** to read requirements directly from
+    documentation pages.
+  - Prompts **GitHub Copilot SDK** to generate structured JSON containing user
+    stories with Titles, Descriptions, and Acceptance Criteria.
+  - Ability to seamlessly write the generated stories back to Azure DevOps as
+    new **Product Backlog Items (PBIs)** linked under a specific Feature.
+- **Persistent Settings**: Securely store Azure DevOps credentials, Confluence
+  tokens, and project configuration locally, and actively check the status of
+  local GitHub Copilot CLI authentication.
 
 ## Tech Stack
 
@@ -28,11 +35,13 @@ TypeScript using Electron Forge.
 - **Styling:** [Bootstrap 5](https://getbootstrap.com/) +
   [FontAwesome 6](https://fontawesome.com/)
 - **Navigation:** [React Router Dom](https://reactrouter.com/)
-- **APIs & Integration:**
+- **APIs & Integration**:
   - `azure-devops-node-api`: For interacting with Azure DevOps REST APIs.
   - `@github/copilot-sdk`: For AI-powered generation via GitHub Copilot.
-- **Storage:** `electron-store` for persistent configuration.
-- **Markdown:** `react-markdown` + `remark-gfm` for rich text rendering.
+  - **Confluence REST API**: Utilizing internal fetches for reading Atlassian
+    Cloud content via Basic Auth using API Tokens.
+- **Storage**: `electron-store` for persistent configuration.
+- **Markdown**: `react-markdown` + `remark-gfm` for rich text rendering.
 
 ## Getting Started
 
@@ -43,6 +52,8 @@ TypeScript using Electron Forge.
   machine (`gh auth login` and `gh extension install github/gh-copilot`).
 - **Azure DevOps PAT**: A Personal Access Token with "Work Items: Read & Write"
   permissions.
+- **Confluence API Token**: An Atlassian API Token generated from your profile
+  settings (to be paired with your login email) for basic authentication.
 
 ### Installation
 
@@ -71,9 +82,10 @@ npm run make
 ├── src/
 │   ├── main/           # Main process logic (Node.js environment)
 │   │   ├── index.ts    # Main process entry point & IPC Handlers
-│   │   └── preload.ts  # Preload script for IPC and secure bridge
+│   │   ├── preload.ts  # Preload script for IPC and secure bridge
+│   │   └── services/   # Encapsulated backend API services (Azure, Copilot, Confluence)
 │   └── renderer/       # Renderer process (React environment)
-│       ├── pages/      # Application views (Menu, Settings, TestCaseWriter)
+│       ├── pages/      # Application views (Menu, Settings, TestCaseWriter, StoryWriter)
 │       ├── App.tsx     # Main React component with Routing
 │       ├── index.css   # Global styles & Markdown overrides
 │       ├── index.html  # Main HTML template

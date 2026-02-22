@@ -30,6 +30,24 @@ const Menu: React.FC = () => {
             </div>
           </div>
         </div>
+        <div className="col-md-4 mb-4">
+          <div className="card shadow-sm h-100">
+            <div className="card-body d-flex flex-column">
+              <h5 className="card-title text-primary">
+                <i className="fas fa-book-open me-2"></i>
+                Story Writer
+              </h5>
+              <p className="card-text text-muted">
+                Generate stories from Confluence requirements.
+              </p>
+              <div className="mt-auto">
+                <Link to="/story-writer" className="btn btn-outline-primary w-100">
+                  Open Tool
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* Placeholder for future tools */}
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm h-100 border-dashed bg-light">
