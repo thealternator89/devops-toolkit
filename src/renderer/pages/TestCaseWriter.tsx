@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+const generateTicketOrCommentText = (testCases: string) => [
+  'Test Cases:',
+  '',
+  testCases,
+  '',
+  'Generated with Devops Toolkit and GitHub Copilot.',
+  'Like any AI generated content, mistakes and hallucinations can occur. Please review before relying on it.'
+].join('\n');
+
 const TestCaseWriter: React.FC = () => {
   const navigate = useNavigate();
   const [ticketId, setTicketId] = useState('');
@@ -11,6 +20,35 @@ const TestCaseWriter: React.FC = () => {
   const [ticketData, setTicketData] = useState<any>(null);
   const [testCases, setTestCases] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [isPosting, setIsPosting] = useState(false);
+
+  const handleAddComment = async () => {
+    setIsPosting(true);
+    try {
+      const text = generateTicketOrCommentText(testCases);
+      await (window as any).electronAPI.addComment(ticketId, text);
+      alert('Comment added successfully!');
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to add comment.');
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  const handleAddTask = async () => {
+    setIsPosting(true);
+    try {
+      const text = generateTicketOrCommentText(testCases);
+      await (window as any).electronAPI.addChildTask(ticketId, 'BA Test', text);
+      alert('Task created successfully!');
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to create task.');
+    } finally {
+      setIsPosting(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!ticketId) {
@@ -152,6 +190,26 @@ const TestCaseWriter: React.FC = () => {
                 </div>
               )}
             </div>
+            {testCases && (
+              <div className="card-footer bg-light d-flex justify-content-end gap-2">
+                <button 
+                  className="btn btn-outline-primary"
+                  onClick={handleAddComment}
+                  disabled={isPosting}
+                >
+                  <i className="fas fa-comment me-2"></i>
+                  Add Comment
+                </button>
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleAddTask}
+                  disabled={isPosting}
+                >
+                  <i className="fas fa-tasks me-2"></i>
+                  Add Task
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
