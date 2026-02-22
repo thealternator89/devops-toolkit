@@ -1,21 +1,32 @@
 # DevOps Toolkit
 
-An Electron-based desktop application for DevOps workflows, built with React and TypeScript using Electron Forge.
+An Electron-based desktop application for DevOps workflows, built with React and
+TypeScript using Electron Forge.
 
 ## Features
 
-- **Menu Dashboard**: A central hub for all DevOps tools using a clean Bootstrap-based UI.
-- **Test Case Writer**: 
-  - Integration with **Azure DevOps** to fetch work item details (ID, Title, Description, Acceptance Criteria).
-  - Integration with **GitHub Copilot SDK** to automatically generate comprehensive test cases based on ticket context.
+- **Menu Dashboard**: A central hub for all DevOps tools using a clean
+  Bootstrap-based UI.
+- **Test Case Writer**:
+  - Integration with **Azure DevOps** to fetch work item details (ID, Title,
+    Description, Acceptance Criteria).
+  - Ability to seamlessly write generated test cases back to Azure DevOps as
+    **Comments** or new **Child Tasks**.
+  - Integration with **GitHub Copilot SDK** to automatically generate
+    comprehensive test cases based on ticket context.
   - Markdown support with GFM (tables, lists, etc.) for rendered results.
-- **Persistent Settings**: Securely store Azure DevOps credentials and project configuration locally.
+- **Persistent Settings**: Securely store Azure DevOps credentials and project
+  configuration locally, and actively check the status of local GitHub Copilot
+  CLI authentication.
 
 ## Tech Stack
 
-- **Framework:** [Electron](https://www.electronjs.org/) (via [Electron Forge](https://www.electronforge.io/))
-- **Frontend:** [React](https://reactjs.org/) + [TypeScript](https://www.typescriptlang.org/)
-- **Styling:** [Bootstrap 5](https://getbootstrap.com/) + [FontAwesome 6](https://fontawesome.com/)
+- **Framework:** [Electron](https://www.electronjs.org/) (via
+  [Electron Forge](https://www.electronforge.io/))
+- **Frontend:** [React](https://reactjs.org/) +
+  [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Bootstrap 5](https://getbootstrap.com/) +
+  [FontAwesome 6](https://fontawesome.com/)
 - **Navigation:** [React Router Dom](https://reactrouter.com/)
 - **APIs & Integration:**
   - `azure-devops-node-api`: For interacting with Azure DevOps REST APIs.
@@ -28,8 +39,10 @@ An Electron-based desktop application for DevOps workflows, built with React and
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (LTS recommended)
-- **GitHub Copilot CLI**: You must be authenticated via the Copilot CLI on your machine (`gh auth login` and `gh extension install github/gh-copilot`).
-- **Azure DevOps PAT**: A Personal Access Token with "Work Items: Read" permissions.
+- **GitHub Copilot CLI**: You must be authenticated via the Copilot CLI on your
+  machine (`gh auth login` and `gh extension install github/gh-copilot`).
+- **Azure DevOps PAT**: A Personal Access Token with "Work Items: Read & Write"
+  permissions.
 
 ### Installation
 
@@ -73,7 +86,8 @@ npm run make
 
 ## Architecture
 
-For a detailed explanation of the process model, configuration management, and AI integration, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+For a detailed explanation of the process model, configuration management, and
+AI integration, see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 ## License
 
