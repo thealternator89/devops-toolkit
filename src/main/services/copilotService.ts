@@ -13,6 +13,22 @@ export class CopilotService {
     return this.session;
   }
 
+  async checkAuthStatus() {
+    try {
+      if (!this.client) {
+        const { CopilotClient } = await eval('import("@github/copilot-sdk")');
+        this.client = new CopilotClient();
+        await this.client.start();
+      }
+      const authStatus = await this.client.getAuthStatus();
+      const status = await this.client.getStatus();
+      return { authStatus, status };
+    } catch (error) {
+      console.error('Error checking Copilot auth status:', error);
+      throw error;
+    }
+  }
+
   async generateTestCases(ticketData: any, additionalContext: string) {
     try {
       const session = await this.getSession();

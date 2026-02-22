@@ -8,6 +8,8 @@ const Settings: React.FC = () => {
   const [azurePat, setAzurePat] = useState('');
   const [copilotToken, setCopilotToken] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
+  const [authStatus, setAuthStatus] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(false);
 
   useEffect(() => {
     // Load existing settings via IPC (to be implemented)
@@ -41,6 +43,19 @@ const Settings: React.FC = () => {
     } catch (error) {
       setStatusMessage('Error saving settings.');
       console.error(error);
+    }
+  };
+
+  const handleCheckAuth = async () => {
+    try {
+      setCheckingAuth(true);
+      setAuthStatus(null);
+      const res = await (window as any).electronAPI.checkCopilotAuth();
+      setAuthStatus(res);
+    } catch (error: any) {
+      setAuthStatus({ error: error.message || 'Unknown error' });
+    } finally {
+      setCheckingAuth(false);
     }
   };
 
@@ -96,7 +111,7 @@ const Settings: React.FC = () => {
               />
             </div>
 
-            <h5 className="mb-3 border-bottom pb-2">GitHub Copilot Configuration</h5>
+            <h5 className="mb-3 border-bottom pb-2 mt-4">GitHub Copilot Configuration</h5>
             <div className="mb-4">
               <label className="form-label">Copilot API Token</label>
               <input 
@@ -106,6 +121,48 @@ const Settings: React.FC = () => {
                 onChange={(e) => setCopilotToken(e.target.value)}
               />
               <div className="form-text">Your Copilot session or API token for authentication.</div>
+            </div>
+
+            <div className="mb-4 p-3 bg-light rounded border">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="mb-0">Copilot CLI Status</h6>
+                <button 
+                  type="button" 
+                  className="btn btn-outline-info btn-sm" 
+                  onClick={handleCheckAuth}
+                  disabled={checkingAuth}
+                >
+                  {checkingAuth ? (
+                    <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Checking...</>
+                  ) : (
+                    <><i className="fas fa-sync-alt me-2"></i>Check Status</>
+                  )}
+                </button>
+              </div>
+              
+              {authStatus && (
+                <div className={`alert mt-2 mb-0 ${authStatus.error || !authStatus.authStatus?.isAuthenticated ? 'alert-danger' : 'alert-success'}`}>
+                  {authStatus.error ? (
+                    <div><strong>Error:</strong> {authStatus.error}</div>
+                  ) : (
+                    <>
+                      <div><strong>Authenticated:</strong> {authStatus.authStatus?.isAuthenticated ? 'Yes' : 'No'}</div>
+                      {authStatus.authStatus?.isAuthenticated && (
+                        <>
+                          <div><strong>User:</strong> {authStatus.authStatus?.login}</div>
+                          <div><strong>Auth Type:</strong> {authStatus.authStatus?.authType}</div>
+                          <div><strong>Message:</strong> {authStatus.authStatus?.statusMessage}</div>
+                          {authStatus.status && (
+                            <div className="mt-2 text-muted small">
+                              CLI Version: {authStatus.status.version} v{authStatus.status.protocolVersion}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <button type="submit" className="btn btn-primary">

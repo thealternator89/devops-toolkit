@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   generateTestCases: (ticketData: any, context: string) => ipcRenderer.invoke('generate-test-cases', ticketData, context),
   addComment: (ticketId: string, text: string) => ipcRenderer.invoke('add-comment', ticketId, text),
   addChildTask: (parentTicketId: string, title: string, description: string) => ipcRenderer.invoke('add-child-task', parentTicketId, title, description),
+  checkCopilotAuth: () => ipcRenderer.invoke('check-copilot-auth'),
 });

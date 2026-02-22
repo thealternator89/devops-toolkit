@@ -69,6 +69,10 @@ ipcMain.handle('generate-test-cases', async (event, ticketData, additionalContex
   return copilotService.generateTestCases(ticketData, additionalContext);
 });
 
+ipcMain.handle('check-copilot-auth', async () => {
+  return copilotService.checkAuthStatus();
+});
+
 ipcMain.handle('add-comment', async (event, ticketId, text) => {
   if (!azureService) throw new Error('Azure DevOps service not initialized.');
   return azureService.addComment(ticketId, text);
