@@ -1,6 +1,6 @@
-function createCopilotClient() {
+async function createCopilotClient() {
   // Eval to avoid webpack interfering with the import
-  const { CopilotClient } = eval('import("@github/copilot-sdk")');
+  const { CopilotClient } = await eval('import("@github/copilot-sdk")');
 
   // Windows has weird redirection issues, where the wrapper exits causing stdio to drop
   // To get around this, instead of launching `copilot` directly, we launch `node` with the 
@@ -28,7 +28,7 @@ export class CopilotService {
 
   private async ensureCopilotClient() {
     if (!this.client) {
-      this.client = createCopilotClient();
+      this.client = await createCopilotClient();
     }
     await this.client.start();
     return this.client;
