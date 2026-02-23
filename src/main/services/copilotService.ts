@@ -1,13 +1,42 @@
+function createCopilotClient() {
+  // Eval to avoid webpack interfering with the import
+  const { CopilotClient } = eval('import("@github/copilot-sdk")');
+
+  // Windows has weird redirection issues, where the wrapper exits causing stdio to drop
+  // To get around this, instead of launching `copilot` directly, we launch `node` with the 
+  // `copilot` script as an argument. This seems to fix the issue.
+  //
+  // FIXME: Ideally once Copilot CLI or SDK come out of preview it will be working normally
+  // and we can remove this
+  if (process.platform === 'win32') {
+    if (!process.env.NODE_PATH || !process.env.COPILOT_SCRIPT_PATH) {
+      throw new Error('On Windows, both NODE_PATH and COPILOT_SCRIPT_PATH environment variables are required to initialise the Copilot client.');
+    }
+    return new CopilotClient({
+      cliPath: process.env.NODE_PATH,
+      cliArgs: [process.env.COPILOT_SCRIPT_PATH],
+      useStdio: true
+    });
+  }
+
+  return new CopilotClient();
+}
+
 export class CopilotService {
   private client: any = null;
   private session: any = null;
 
+  private async ensureCopilotClient() {
+    if (!this.client) {
+      this.client = createCopilotClient();
+    }
+    await this.client.start();
+    return this.client;
+  }
+
   private async getSession() {
+    await this.ensureCopilotClient();
     if (!this.session) {
-      // Dynamic import for Copilot SDK using eval to bypass Webpack bundling
-      const { CopilotClient } = await eval('import("@github/copilot-sdk")');
-      this.client = new CopilotClient();
-      await this.client.start();
       this.session = await this.client.createSession();
     }
     return this.session;
@@ -15,11 +44,7 @@ export class CopilotService {
 
   async checkAuthStatus() {
     try {
-      if (!this.client) {
-        const { CopilotClient } = await eval('import("@github/copilot-sdk")');
-        this.client = new CopilotClient();
-        await this.client.start();
-      }
+      await this.ensureCopilotClient();
       const authStatus = await this.client.getAuthStatus();
       const status = await this.client.getStatus();
       return { authStatus, status };
@@ -32,7 +57,7 @@ export class CopilotService {
   async generateTestCases(ticketData: any, additionalContext: string) {
     try {
       const session = await this.getSession();
-      
+
       const prompt = `
         Generate a set of comprehensive test cases for the following user story/ticket.
         
@@ -64,7 +89,7 @@ export class CopilotService {
   async generateStories(pageData: any, additionalContext: string) {
     try {
       const session = await this.getSession();
-      
+
       const prompt = `
         Generate a set of user stories based on the following functional requirements from a Confluence page.
         
@@ -84,7 +109,7 @@ export class CopilotService {
       // Send message and wait for assistant to finish
       const response = await session.sendAndWait({ prompt });
       const rawContent = response?.data?.content || '[]';
-      
+
       try {
         // Attempt to extract JSON from markdown code block if present
         const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);

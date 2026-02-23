@@ -49,7 +49,10 @@ TypeScript using Electron Forge.
 
 - [Node.js](https://nodejs.org/) (LTS recommended)
 - **GitHub Copilot CLI**: You must be authenticated via the Copilot CLI on your
-  machine (`gh auth login` and `gh extension install github/gh-copilot`).
+  machine (launch `copilot`, enter `/login` and follow the prompts).
+  - **Note for Windows Users**: You must set the `NODE_PATH` (path to Node.js
+    executable) and `COPILOT_SCRIPT_PATH` (path to the Copilot JS script)
+    environment variables for the Copilot client to initialize correctly.
 - **Azure DevOps PAT**: A Personal Access Token with "Work Items: Read & Write"
   permissions.
 - **Confluence API Token**: An Atlassian API Token generated from your profile
