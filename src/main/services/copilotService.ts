@@ -37,7 +37,11 @@ export class CopilotService {
   private async getSession() {
     await this.ensureCopilotClient();
     if (!this.session) {
-      this.session = await this.client.createSession();
+      // TODO: make this configurable based on what we're trying to do
+      this.session = await this.client.createSession({
+        model: 'gpt-4.1', // Lighter model to avoid timeouts
+        availableTools: [] // Don't allow any tools to ensure the agent doesn't write to disk etc.
+      });
     }
     return this.session;
   }
@@ -75,6 +79,9 @@ export class CopilotService {
         - Steps
         - Expected Result
         - Priority
+
+        DO NOT create any files, directly output the test cases in your response here.
+        DO NOT include any other text in your response other than the markdown table.
       `;
 
       // Send message and wait for assistant to finish
@@ -104,6 +111,9 @@ export class CopilotService {
         - "description": (string) Description. This should contain a statement in the format "As a... I want to... So that..." followed by 2 blank lines and then a longer description of the changes required for story.
         - "acceptanceCriteria": (string) Formatted as a list. Use markdown within the string with \\n for newlines.
         - "notes": (string) Any additional notes or assumptions (Optional, can be empty)
+
+        DO NOT create any files, directly output the test cases in your response here.
+        DO NOT include any other text (including markdown code block) in your response other than the JSON blob.
       `;
 
       // Send message and wait for assistant to finish
