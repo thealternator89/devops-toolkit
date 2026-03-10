@@ -8,6 +8,10 @@ import { WebpackPlugin } from '@electron-forge/plugin-webpack';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
 
@@ -52,6 +56,45 @@ const config: ForgeConfig = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
+  hooks: {
+    packageAfterCopy: async (
+      forgeConfig, 
+      buildPath, 
+      electronVersion, 
+      platform, 
+      arch
+    ) => {
+      console.log('Hook: Installing external dependencies...');
+      
+      // 1. Use process.cwd() instead of __dirname for ESM compatibility
+      const rootDir = process.cwd();
+      const pkgPath = path.join(rootDir, 'package.json');
+      
+      // 2. Read and parse your app's main package.json
+      const appPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+
+      // 3. Create a minimal package.json in the packaged app directory
+      const buildPkgPath = path.join(buildPath, 'package.json');
+      const buildPkg = {
+        name: 'your-app-externals',
+        private: true,
+        dependencies: {
+          // Explicitly type assert or safely access the dependency
+          '@github/copilot-sdk': appPkg.dependencies?.['@github/copilot-sdk']
+        }
+      };
+      
+      fs.writeFileSync(buildPkgPath, JSON.stringify(buildPkg, null, 2));
+
+      // 4. Run npm install inside the packaged folder
+      execSync('npm install --omit=dev', { 
+        cwd: buildPath, 
+        stdio: 'inherit' 
+      });
+      
+      console.log('Hook: External dependencies installed successfully!');
+    }
+  },
 };
 
 export default config;
