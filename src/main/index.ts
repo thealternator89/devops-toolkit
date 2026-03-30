@@ -50,12 +50,24 @@ ipcMain.handle('get-settings', async () => {
 
 ipcMain.handle('save-settings', async (event, settings: AppSettings) => {
   const s = await initStore();
-  s.set('settings', settings);
-  
-  // Invalidate azure and confluence service so it gets re-created on the next fetch with new credentials
+
+  // Trim and normalize saved settings to avoid whitespace-caused auth issues
+  const sanitizedSettings: AppSettings = {
+    azureOrg: settings.azureOrg?.toString().trim(),
+    azureProject: settings.azureProject?.toString().trim(),
+    azurePat: settings.azurePat?.toString().trim(),
+    copilotToken: settings.copilotToken?.toString().trim(),
+    confluenceUrl: settings.confluenceUrl?.toString().trim(),
+    confluenceUser: settings.confluenceUser?.toString().trim(),
+    confluenceToken: settings.confluenceToken?.toString().trim(),
+  };
+
+  s.set('settings', sanitizedSettings);
+
+  // Invalidate services so they get re-created on the next fetch with new credentials
   azureService = null;
   confluenceService = null;
-  
+
   return { success: true };
 });
 
@@ -63,10 +75,12 @@ async function getAzureService() {
   if (!azureService) {
     const s = await initStore();
     const settings = s.get('settings') as AppSettings;
-    if (!settings || !settings.azureOrg || !settings.azurePat) {
+    const azureOrg = settings?.azureOrg?.toString().trim() || '';
+    const azurePat = settings?.azurePat?.toString().trim() || '';
+    if (!azureOrg || !azurePat) {
       throw new Error('Azure DevOps settings are missing.');
     }
-    azureService = new AzureDevOpsService(settings.azureOrg, settings.azurePat);
+    azureService = new AzureDevOpsService(azureOrg, azurePat);
   }
   return azureService;
 }
@@ -83,13 +97,16 @@ ipcMain.handle('generate-test-cases', async (event, ticketData, additionalContex
 ipcMain.handle('fetch-confluence-page', async (event, pageId) => {
   const s = await initStore();
   const settings = s.get('settings') as AppSettings;
-  if (!settings || !settings.confluenceUrl || !settings.confluenceToken) {
+  const confluenceUrl = settings?.confluenceUrl?.toString().trim() || '';
+  const confluenceUser = settings?.confluenceUser?.toString().trim() || '';
+  const confluenceToken = settings?.confluenceToken?.toString().trim() || '';
+
+  if (!confluenceUrl || !confluenceToken) {
     throw new Error('Confluence URL and Token are required.');
   }
 
   if (!confluenceService) {
-    // confluenceUser can be undefined/empty if using Bearer token
-    confluenceService = new ConfluenceService(settings.confluenceUrl, settings.confluenceUser || '', settings.confluenceToken);
+    confluenceService = new ConfluenceService(confluenceUrl, confluenceUser, confluenceToken);
   }
   return confluenceService.fetchPage(pageId);
 });
