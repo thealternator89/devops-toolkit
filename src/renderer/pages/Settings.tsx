@@ -20,13 +20,13 @@ const Settings: React.FC = () => {
       try {
         const settings = await (window as any).electronAPI.getSettings();
         if (settings) {
-          setAzureOrg(settings.azureOrg?.trim() || '');
-          setAzureProject(settings.azureProject?.trim() || '');
-          setAzurePat(settings.azurePat?.trim() || '');
-          setCopilotToken(settings.copilotToken?.trim() || '');
-          setConfluenceUrl(settings.confluenceUrl?.trim() || '');
-          setConfluenceUser(settings.confluenceUser?.trim() || '');
-          setConfluenceToken(settings.confluenceToken?.trim() || '');
+          setAzureOrg(settings.azureOrg || '');
+          setAzureProject(settings.azureProject || '');
+          setAzurePat(settings.azurePat || '');
+          setCopilotToken(settings.copilotToken || '');
+          setConfluenceUrl(settings.confluenceUrl || '');
+          setConfluenceUser(settings.confluenceUser || '');
+          setConfluenceToken(settings.confluenceToken || '');
         }
       } catch (error) {
         console.error('Failed to load settings:', error);
@@ -39,13 +39,13 @@ const Settings: React.FC = () => {
     e.preventDefault();
     try {
       await (window as any).electronAPI.saveSettings({
-        azureOrg: azureOrg.trim(),
-        azureProject: azureProject.trim(),
-        azurePat: azurePat.trim(),
-        copilotToken: copilotToken.trim(),
-        confluenceUrl: confluenceUrl.trim(),
-        confluenceUser: confluenceUser.trim(),
-        confluenceToken: confluenceToken.trim()
+        azureOrg: azureOrg,
+        azureProject: azureProject,
+        azurePat: azurePat,
+        copilotToken: copilotToken,
+        confluenceUrl: confluenceUrl,
+        confluenceUser: confluenceUser,
+        confluenceToken: confluenceToken
       });
       setStatusMessage('Settings saved successfully!');
       setTimeout(() => setStatusMessage(''), 3000);

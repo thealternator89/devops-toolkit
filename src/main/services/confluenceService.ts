@@ -4,9 +4,9 @@ export class ConfluenceService {
   private token: string;
 
   constructor(url: string, user: string, token: string) {
-    this.url = (url || '').toString().trim();
-    this.user = (user || '').toString().trim();
-    this.token = (token || '').toString().trim();
+    this.url = (url ?? '').toString().trim();
+    this.user = (user ?? '').toString().trim();
+    this.token = (token ?? '').toString().trim();
   }
 
   private getAuthHeader(): { header: string; scheme: 'Basic' | 'Bearer' } {
@@ -42,6 +42,7 @@ export class ConfluenceService {
     console.log('Confluence auth scheme:', scheme);
 
     try {
+      // In newer Node/Electron versions, fetch is globally available
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
