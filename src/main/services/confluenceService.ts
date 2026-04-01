@@ -52,7 +52,7 @@ export class ConfluenceService {
       });
 
       if (!response.ok) {
-        const bodyText = await response.text().catch(() => '');
+        const bodyText = await response.text().catch(e => `(parse failed: ${e.message ?? 'unknown'})`);
         throw new Error(`Failed to fetch Confluence page: ${response.status} ${response.statusText} ${bodyText}`);
       }
 
