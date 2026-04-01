@@ -39,13 +39,13 @@ const Settings: React.FC = () => {
     e.preventDefault();
     try {
       await (window as any).electronAPI.saveSettings({
-        azureOrg,
-        azureProject,
-        azurePat,
-        copilotToken,
-        confluenceUrl,
-        confluenceUser,
-        confluenceToken
+        azureOrg: azureOrg,
+        azureProject: azureProject,
+        azurePat: azurePat,
+        copilotToken: copilotToken,
+        confluenceUrl: confluenceUrl,
+        confluenceUser: confluenceUser,
+        confluenceToken: confluenceToken
       });
       setStatusMessage('Settings saved successfully!');
       setTimeout(() => setStatusMessage(''), 3000);
