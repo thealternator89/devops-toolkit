@@ -1,6 +1,6 @@
 async function createCopilotClient() {
   // Eval to avoid webpack interfering with the import
-  const { CopilotClient } = await eval('import("@github/copilot-sdk")');
+  const { CopilotClient, approveAll } = await eval('import("@github/copilot-sdk")');
 
   // Windows has weird redirection issues, where the wrapper exits causing stdio to drop
   // To get around this, instead of launching `copilot` directly, we launch `node` with the 
@@ -12,23 +12,29 @@ async function createCopilotClient() {
     if (!process.env.NODE_PATH || !process.env.COPILOT_SCRIPT_PATH) {
       throw new Error('On Windows, both NODE_PATH and COPILOT_SCRIPT_PATH environment variables are required to initialise the Copilot client.');
     }
-    return new CopilotClient({
-      cliPath: process.env.NODE_PATH,
-      cliArgs: [process.env.COPILOT_SCRIPT_PATH],
-      useStdio: true
-    });
+    return {
+      client: new CopilotClient({
+        cliPath: process.env.NODE_PATH,
+        cliArgs: [process.env.COPILOT_SCRIPT_PATH],
+        useStdio: true
+      }),
+      approveAll
+    };
   }
 
-  return new CopilotClient();
+  return { client: new CopilotClient(), approveAll };
 }
 
 export class CopilotService {
   private client: any = null;
+  private approveAll: any = null;
   private session: any = null;
 
   private async ensureCopilotClient() {
     if (!this.client) {
-      this.client = await createCopilotClient();
+      const { client, approveAll } = await createCopilotClient();
+      this.client = client;
+      this.approveAll = approveAll;
     }
     await this.client.start();
     return this.client;
@@ -40,7 +46,8 @@ export class CopilotService {
       // TODO: make this configurable based on what we're trying to do
       this.session = await this.client.createSession({
         model: 'gpt-4.1', // Lighter model to avoid timeouts
-        availableTools: [] // Don't allow any tools to ensure the agent doesn't write to disk etc.
+        availableTools: [], // Don't allow any tools to ensure the agent doesn't write to disk etc.
+        onPermissionRequest: this.approveAll
       });
     }
     return this.session;
