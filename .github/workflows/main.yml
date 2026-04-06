@@ -32,8 +32,8 @@ jobs:
         run: |
           VERSION=$(date +'%Y.%-m.%-d')
           if [ "${GITHUB_REF_NAME}" != "main" ]; then
-            # Sanitize branch name: allow alpha and hyphens, others become underscores
-            BRANCH_LABEL=$(echo ${GITHUB_REF_NAME} | sed 's/[^a-zA-Z0-9-]/_/g' | tr '[:upper:]' '[:lower:]')
+            # Sanitize branch name: replace all non-alphanumeric with hyphens for SemVer compliance
+            BRANCH_LABEL=$(echo ${GITHUB_REF_NAME} | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
             VERSION="${VERSION}-${BRANCH_LABEL}"
           fi
           echo "Setting version to: $VERSION"
