@@ -42,7 +42,7 @@ const ModelDropdown: React.FC<ModelDropdownProps> = ({
           >
             <span className="me-2 text-truncate">{model.name}</span>
             <span className="text-muted ms-2">
-              {typeof model.billing?.multiplier === 'number' ? `×${model.billing.multiplier}` : ''}
+              {`×${model.billing.multiplier}`}
             </span>
           </button>
         </li>

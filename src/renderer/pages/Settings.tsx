@@ -34,7 +34,6 @@ const Settings: React.FC = () => {
         console.error('Failed to load settings:', error);
       }
     };
-
     loadSettings();
   }, []);
 

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 export interface CopilotModel {
   id: string;
   name: string;
-  billing?: { multiplier?: number };
+  billing: { multiplier: number };
 }
 
 export function useCopilotModels() {
@@ -16,14 +16,16 @@ export function useCopilotModels() {
       try {
         setLoadingModels(true);
         const settings = await (window as any).electronAPI.getSettings();
-        const list: CopilotModel[] = await (window as any).electronAPI.listCopilotModels() || [];
+        const list: CopilotModel[] = await (window as any).electronAPI.listCopilotModels() ?? [];
         setModels(list);
-        setSelectedModel(prev => {
-          if (prev) return prev;
-          if (settings?.copilotModel) return settings.copilotModel;
-          const fallback = list.find(m => m.id === 'gpt-4.1');
-          return fallback ? fallback.id : (list[0]?.id || '');
-        });
+        const defaultModel = settings?.copilotModel
+          ?? list.find(m => m.id === 'gpt-4.1')?.id
+          ?? list[0]?.id
+          ?? '';
+
+        // Throw if no models can be loaded
+        if (!defaultModel) throw new Error('No models available.');
+        setSelectedModel(defaultModel);
       } catch (err) {
         console.error('Failed to load Copilot models:', err);
       } finally {
