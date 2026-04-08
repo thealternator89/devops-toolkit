@@ -14,6 +14,7 @@ type AppSettings = {
   azureProject?: string;
   azurePat?: string;
   copilotToken?: string;
+  copilotModel?: string;
   confluenceUrl?: string;
   confluenceUser?: string;
   confluenceToken?: string;
@@ -70,6 +71,8 @@ ipcMain.handle('save-settings', async (event, settings: AppSettings) => {
 
   s.set('settings', sanitizedSettings);
 
+  copilotService.setModel(sanitizedSettings.copilotModel || 'gpt-4.1');
+
   // Invalidate services so they get re-created on the next fetch with new credentials
   azureService = null;
   confluenceService = null;
@@ -94,8 +97,8 @@ ipcMain.handle('fetch-ticket', async (event, ticketId) => {
   return service.fetchTicket(ticketId);
 });
 
-ipcMain.handle('generate-test-cases', async (event, ticketData, additionalContext) => {
-  return copilotService.generateTestCases(ticketData, additionalContext);
+ipcMain.handle('generate-test-cases', async (event, ticketData, additionalContext, modelOverride) => {
+  return copilotService.generateTestCases(ticketData, additionalContext, modelOverride);
 });
 
 ipcMain.handle('fetch-confluence-page', async (event, pageId) => {
@@ -112,12 +115,16 @@ ipcMain.handle('fetch-confluence-page', async (event, pageId) => {
   return confluenceService.fetchPage(pageId);
 });
 
-ipcMain.handle('generate-stories', async (event, pageData, additionalContext) => {
-  return copilotService.generateStories(pageData, additionalContext);
+ipcMain.handle('generate-stories', async (event, pageData, additionalContext, modelOverride) => {
+  return copilotService.generateStories(pageData, additionalContext, modelOverride);
 });
 
 ipcMain.handle('check-copilot-auth', async () => {
   return copilotService.checkAuthStatus();
+});
+
+ipcMain.handle('list-copilot-models', async () => {
+  return copilotService.listModels();
 });
 
 ipcMain.handle('add-comment', async (event, ticketId, text) => {

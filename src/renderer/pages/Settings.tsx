@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCopilotModels } from '../hooks/useCopilotModels';
+import ModelDropdown from '../components/ModelDropdown';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
@@ -13,9 +15,9 @@ const Settings: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState('');
   const [authStatus, setAuthStatus] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(false);
+  const { models, selectedModel, setSelectedModel, loadingModels } = useCopilotModels();
 
   useEffect(() => {
-    // Load existing settings via IPC (to be implemented)
     const loadSettings = async () => {
       try {
         const settings = await (window as any).electronAPI.getSettings();
@@ -43,6 +45,7 @@ const Settings: React.FC = () => {
         azureProject: azureProject,
         azurePat: azurePat,
         copilotToken: copilotToken,
+        copilotModel: selectedModel,
         confluenceUrl: confluenceUrl,
         confluenceUser: confluenceUser,
         confluenceToken: confluenceToken
@@ -154,7 +157,7 @@ const Settings: React.FC = () => {
             </div>
 
             <h5 className="mb-3 border-bottom pb-2 mt-4">GitHub Copilot Configuration</h5>
-            <div className="mb-4">
+            <div className="mb-3">
               <label className="form-label">Copilot API Token</label>
               <input 
                 type="password" 
@@ -163,6 +166,17 @@ const Settings: React.FC = () => {
                 onChange={(e) => setCopilotToken(e.target.value)}
               />
               <div className="form-text">Your Copilot session or API token for authentication.</div>
+            </div>
+            <div className="mb-4">
+              <label className="form-label">Default Model</label>
+              <ModelDropdown
+                models={models}
+                selectedModel={selectedModel}
+                onSelect={setSelectedModel}
+                loading={loadingModels}
+                className="w-25"
+                buttonVariant='outline-secondary'
+              />
             </div>
 
             <div className="mb-4 p-3 bg-light rounded border">
