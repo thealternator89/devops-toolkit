@@ -20,13 +20,31 @@ const App: React.FC = () => {
     fetchVersion();
   }, []);
 
+  const handleOpenIssues = (e: React.MouseEvent) => {
+    e.preventDefault();
+    (window as any).electronAPI.openExternal(
+      'https://github.com/thealternator89/stitch/issues',
+    );
+  };
+
+  const isWindows = (window as any).electronAPI.isWindows;
+
   return (
     <Router>
-      <div className="titlebar shadow-sm">
+      <div className={`titlebar shadow-sm ${isWindows ? 'is-windows' : ''}`}>
         <span className="titlebar-content">
           <i className="fas fa-code-merge me-2 text-primary"></i>
           Stitch
         </span>
+        <div className="titlebar-actions no-drag">
+          <button
+            className="btn btn-outline-light btn-sm titlebar-btn"
+            onClick={handleOpenIssues}
+            title="Report an Issue"
+          >
+            <i className="fas fa-bug"></i>
+          </button>
+        </div>
       </div>
 
       <div className="main-content">
