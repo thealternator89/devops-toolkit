@@ -7,7 +7,12 @@ const Settings: React.FC = () => {
   const navigate = useNavigate();
   const [azureOrg, setAzureOrg] = useState('');
   const [azureProject, setAzureProject] = useState('');
-  const [azurePat, setAzurePat] = useState('');
+  const [savedAzureOrg, setSavedAzureOrg] = useState('');
+  const [savedAzureProject, setSavedAzureProject] = useState('');
+  const [azureAuthStatus, setAzureAuthStatus] = useState({
+    isAuthenticated: false,
+  });
+  const [checkingAzure, setCheckingAzure] = useState(false);
   const [copilotToken, setCopilotToken] = useState('');
   const [confluenceUrl, setConfluenceUrl] = useState('');
   const [confluenceUser, setConfluenceUser] = useState('');
@@ -25,12 +30,16 @@ const Settings: React.FC = () => {
         if (settings) {
           setAzureOrg(settings.azureOrg || '');
           setAzureProject(settings.azureProject || '');
-          setAzurePat(settings.azurePat || '');
+          setSavedAzureOrg(settings.azureOrg || '');
+          setSavedAzureProject(settings.azureProject || '');
           setCopilotToken(settings.copilotToken || '');
           setConfluenceUrl(settings.confluenceUrl || '');
           setConfluenceUser(settings.confluenceUser || '');
           setConfluenceToken(settings.confluenceToken || '');
         }
+
+        const status = await (window as any).electronAPI.getAzureStatus();
+        setAzureAuthStatus(status);
       } catch (error) {
         console.error('Failed to load settings:', error);
       }
@@ -44,19 +53,39 @@ const Settings: React.FC = () => {
       await (window as any).electronAPI.saveSettings({
         azureOrg: azureOrg,
         azureProject: azureProject,
-        azurePat: azurePat,
         copilotToken: copilotToken,
         copilotModel: selectedModel,
         confluenceUrl: confluenceUrl,
         confluenceUser: confluenceUser,
         confluenceToken: confluenceToken,
       });
+      setSavedAzureOrg(azureOrg);
+      setSavedAzureProject(azureProject);
       setStatusMessage('Settings saved successfully!');
       setTimeout(() => setStatusMessage(''), 3000);
     } catch (error) {
       setStatusMessage('Error saving settings.');
       console.error(error);
     }
+  };
+
+  const handleAzureLogin = async () => {
+    try {
+      setCheckingAzure(true);
+      await (window as any).electronAPI.azureLogin();
+      const status = await (window as any).electronAPI.getAzureStatus();
+      setAzureAuthStatus(status);
+    } catch (error) {
+      console.error('Azure login failed:', error);
+      setStatusMessage('Azure login failed. Check console for details.');
+    } finally {
+      setCheckingAzure(false);
+    }
+  };
+
+  const handleAzureLogout = async () => {
+    await (window as any).electronAPI.azureLogout();
+    setAzureAuthStatus({ isAuthenticated: false });
   };
 
   const handleCheckAuth = async () => {
@@ -122,13 +151,58 @@ const Settings: React.FC = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="form-label">Personal Access Token (PAT)</label>
-              <input
-                type="password"
-                className="form-control"
-                value={azurePat}
-                onChange={(e) => setAzurePat(e.target.value)}
-              />
+              <label className="form-label d-block">Authentication</label>
+              {azureAuthStatus.isAuthenticated ? (
+                <div className="d-flex align-items-center">
+                  <span className="badge bg-success me-3 p-2">
+                    <i className="fas fa-check-circle me-1"></i> Authenticated
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={handleAzureLogout}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={handleAzureLogin}
+                    disabled={
+                      checkingAzure ||
+                      !azureOrg ||
+                      !azureProject ||
+                      azureOrg !== savedAzureOrg ||
+                      azureProject !== savedAzureProject
+                    }
+                  >
+                    {checkingAzure ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fab fa-microsoft me-2"></i>Sign In with
+                        Microsoft
+                      </>
+                    )}
+                  </button>
+                  {(!azureOrg ||
+                    !azureProject ||
+                    azureOrg !== savedAzureOrg ||
+                    azureProject !== savedAzureProject) && (
+                    <div className="form-text text-danger mt-1 small">
+                      <i className="fas fa-exclamation-triangle me-1"></i>
+                      Please enter and <strong>Save</strong> settings to enable
+                      Sign In.
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <h5 className="mb-3 border-bottom pb-2 mt-4">

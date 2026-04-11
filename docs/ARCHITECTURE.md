@@ -19,8 +19,7 @@ main (Node.js) process from the renderer (Chromium) process.
 
 ## Configuration Management
 
-We use `electron-store` to persist user settings (like Azure DevOps PATs)
-locally on the machine.
+We use `electron-store` to persist user settings locally on the machine.
 
 - **Encryption:** Settings are stored in the default Electron user data path.
 - **IPC Access:** The renderer fetches and saves settings through the
@@ -30,8 +29,8 @@ locally on the machine.
 
 ### Azure DevOps
 
-- **Library:** `azure-devops-node-api`
-- **Method:** Uses Personal Access Tokens (PAT) via the Work Item Tracking API.
+- **Libraries:** `azure-devops-node-api`, `@azure/msal-node`
+- **Method:** OAuth 2.0 with PKCE via MSAL for secure authentication.
 - **Scope:** Fetches work item details (ID, Title, Description, Acceptance
   Criteria), and allows pushing generated test cases back to Azure DevOps as
   Comments or Child Tasks.

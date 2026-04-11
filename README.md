@@ -24,9 +24,9 @@ TypeScript using Electron Forge.
     stories with Titles, Descriptions, and Acceptance Criteria.
   - Ability to seamlessly write the generated stories back to Azure DevOps as
     new **Product Backlog Items (PBIs)** linked under a specific Feature.
-- **Persistent Settings**: Securely store Azure DevOps credentials, Confluence
-  tokens, and project configuration locally, and actively check the status of
-  local GitHub Copilot CLI authentication.
+- **Persistent Settings**: Securely store Azure DevOps organization details,
+  Confluence tokens, and project configuration locally, and actively check the
+  status of local GitHub Copilot CLI authentication.
 
 ## Tech Stack
 
@@ -39,6 +39,7 @@ TypeScript using Electron Forge.
 - **Navigation:** [React Router Dom](https://reactrouter.com/)
 - **APIs & Integration**:
   - `azure-devops-node-api`: For interacting with Azure DevOps REST APIs.
+  - `@azure/msal-node`: For OAuth 2.0 with PKCE authentication to Azure DevOps.
   - `@github/copilot-sdk`: For AI-powered generation via GitHub Copilot.
   - **Confluence REST API**: Utilizing internal fetches for reading Atlassian
     Cloud content via Basic Auth using API Tokens.
@@ -55,8 +56,9 @@ TypeScript using Electron Forge.
   - **Note for Windows Users**: You must set the `NODE_PATH` (path to Node.js
     executable) and `COPILOT_SCRIPT_PATH` (path to the Copilot JS script)
     environment variables for the Copilot client to initialize correctly.
-- **Azure DevOps PAT**: A Personal Access Token with "Work Items: Read & Write"
-  permissions.
+- **Azure DevOps Account**: Access to an Azure DevOps organization. The
+  application uses OAuth 2.0 with PKCE for secure authentication (no PAT
+  required).
 - **Confluence API Token**: An Atlassian API Token generated from your profile
   settings (to be paired with your login email) for basic authentication.
 
