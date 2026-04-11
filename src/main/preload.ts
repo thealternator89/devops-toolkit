@@ -40,4 +40,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkCopilotAuth: () => ipcRenderer.invoke('check-copilot-auth'),
   getVersion: () => ipcRenderer.invoke('get-version'),
   listCopilotModels: () => ipcRenderer.invoke('list-copilot-models'),
+  openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
+  isWindows: process.platform === 'win32',
 });

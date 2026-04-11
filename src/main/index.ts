@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { AzureDevOpsService } from './services/azureDevOpsService';
 import { CopilotService } from './services/copilotService';
 import { ConfluenceService } from './services/confluenceService';
@@ -51,6 +51,10 @@ ipcMain.handle('get-settings', async () => {
 
 ipcMain.handle('get-version', async () => {
   return app.getVersion();
+});
+
+ipcMain.handle('open-external', async (event, url: string) => {
+  return shell.openExternal(url);
 });
 
 function trimProperties(
