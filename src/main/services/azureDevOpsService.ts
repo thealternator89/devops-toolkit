@@ -1,17 +1,113 @@
 import * as azdev from 'azure-devops-node-api';
 import { IWorkItemTrackingApi } from 'azure-devops-node-api/WorkItemTrackingApi';
+import {
+  PublicClientApplication,
+  Configuration,
+  AuthenticationResult,
+  LogLevel,
+  AccountInfo,
+  InteractiveRequest,
+} from '@azure/msal-node';
+import { shell } from 'electron';
+
+const CLIENT_ID = '4e8ba545-31c8-4734-afb2-158ee44a051c'; // Azure DevOps App Registration Client ID
+const AUTHORITY = 'https://login.microsoftonline.com/common';
+const SCOPES = ['499b84ac-1321-427f-aa17-267ca6975798/.default'];
 
 export class AzureDevOpsService {
   private witApi: IWorkItemTrackingApi | null = null;
+  private pca: PublicClientApplication;
+  private account: AccountInfo | null = null;
 
-  constructor(
-    private org: string,
-    private pat: string,
-  ) {}
+  constructor(public org: string) {
+    const msalConfig: Configuration = {
+      auth: {
+        clientId: CLIENT_ID,
+        authority: AUTHORITY,
+      },
+      system: {
+        loggerOptions: {
+          loggerCallback(loglevel, message, containsPii) {
+            if (!containsPii) console.log(message);
+          },
+          piiLoggingEnabled: false,
+          logLevel: LogLevel.Info,
+        },
+      },
+    };
+    this.pca = new PublicClientApplication(msalConfig);
+  }
+
+  private async getAccount(): Promise<AccountInfo | null> {
+    if (!this.account) {
+      const cache = this.pca.getTokenCache();
+      const accounts = await cache.getAllAccounts();
+      if (accounts.length > 0) {
+        this.account = accounts[0];
+      }
+    }
+    return this.account;
+  }
+
+  async login(): Promise<AuthenticationResult | null> {
+    const interactiveRequest: InteractiveRequest = {
+      scopes: SCOPES,
+      openBrowser: async (url: string) => {
+        await shell.openExternal(url);
+      },
+      successTemplate:
+        '<h1>Authentication Successful</h1><p>You can close this window now.</p>',
+      errorTemplate:
+        '<h1>Authentication Failed</h1><p>Please check the logs.</p>',
+    };
+
+    try {
+      const result = await this.pca.acquireTokenInteractive(interactiveRequest);
+      this.account = result.account;
+      this.witApi = null; // Reset API client to use new token
+      return result;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  }
+
+  async logout(): Promise<void> {
+    const account = await this.getAccount();
+    if (account) {
+      await this.pca.getTokenCache().removeAccount(account);
+      this.account = null;
+      this.witApi = null;
+    }
+  }
+
+  async getAccessToken(): Promise<string> {
+    const account = await this.getAccount();
+    if (!account) {
+      throw new Error('No account found. Please log in first.');
+    }
+
+    try {
+      const result = await this.pca.acquireTokenSilent({
+        account: account,
+        scopes: SCOPES,
+      });
+      return result.accessToken;
+    } catch (error) {
+      console.warn(
+        'Silent token acquisition failed, attempting interactive login...',
+        error,
+      );
+      const result = await this.login();
+      if (!result) throw new Error('Failed to acquire token.');
+      return result.accessToken;
+    }
+  }
 
   private async getApi(): Promise<IWorkItemTrackingApi> {
     if (!this.witApi) {
-      const authHandler = azdev.getPersonalAccessTokenHandler(this.pat);
+      const token = await this.getAccessToken();
+      const authHandler = azdev.getBearerHandler(token);
       const connection = new azdev.WebApi(this.org, authHandler);
       this.witApi = await connection.getWorkItemTrackingApi();
     }

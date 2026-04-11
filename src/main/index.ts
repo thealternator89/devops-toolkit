@@ -12,7 +12,6 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 type AppSettings = {
   azureOrg?: string;
   azureProject?: string;
-  azurePat?: string;
   copilotToken?: string;
   copilotModel?: string;
   confluenceUrl?: string;
@@ -32,7 +31,6 @@ async function initStore() {
   return store;
 }
 
-// Global service instances
 // Global service instances
 let azureService: AzureDevOpsService | null = null;
 let confluenceService: any = null;
@@ -57,9 +55,9 @@ function trimProperties(
   obj: Record<string, string | undefined>,
 ): Record<string, string | undefined> {
   const out: Record<string, string> = {};
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      out[key] = obj[key]?.toString().trim();
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      out[key] = obj[key]?.toString().trim() || '';
     }
   }
   return out;
@@ -83,18 +81,52 @@ ipcMain.handle('save-settings', async (event, settings: AppSettings) => {
 });
 
 async function getAzureService() {
-  if (!azureService) {
-    const s = await initStore();
-    const { azureOrg, azurePat } = trimProperties(
-      s.get('settings'),
-    ) as AppSettings;
-    if (!azureOrg || !azurePat) {
-      throw new Error('Azure DevOps settings are missing.');
-    }
-    azureService = new AzureDevOpsService(azureOrg, azurePat);
+  const s = await initStore();
+  const settings = trimProperties(s.get('settings') || {}) as AppSettings;
+  const { azureOrg } = settings;
+
+  if (!azureOrg) {
+    throw new Error(
+      'Azure DevOps Organization URL is missing in settings. Please provide it before logging in.',
+    );
   }
+
+  if (!azureService) {
+    azureService = new AzureDevOpsService(azureOrg);
+  } else if (azureService.org !== azureOrg) {
+    // If org changed, re-initialize
+    azureService = new AzureDevOpsService(azureOrg);
+  }
+
   return azureService;
 }
+
+ipcMain.handle('azure-login', async () => {
+  const service = await getAzureService();
+  return service.login();
+});
+
+ipcMain.handle('azure-logout', async () => {
+  if (azureService) {
+    await azureService.logout();
+    azureService = null;
+  }
+  return { success: true };
+});
+
+ipcMain.handle('get-azure-status', async () => {
+  try {
+    const s = await initStore();
+    const settings = trimProperties(s.get('settings') || {}) as AppSettings;
+    if (!settings.azureOrg) return { isAuthenticated: false };
+
+    const service = await getAzureService();
+    const token = await service.getAccessToken();
+    return { isAuthenticated: !!token };
+  } catch (error) {
+    return { isAuthenticated: false };
+  }
+});
 
 ipcMain.handle('fetch-ticket', async (event, ticketId) => {
   const service = await getAzureService();

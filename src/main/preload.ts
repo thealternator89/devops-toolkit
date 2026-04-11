@@ -40,4 +40,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkCopilotAuth: () => ipcRenderer.invoke('check-copilot-auth'),
   getVersion: () => ipcRenderer.invoke('get-version'),
   listCopilotModels: () => ipcRenderer.invoke('list-copilot-models'),
+  azureLogin: () => ipcRenderer.invoke('azure-login'),
+  azureLogout: () => ipcRenderer.invoke('azure-logout'),
+  getAzureStatus: () => ipcRenderer.invoke('get-azure-status'),
 });
