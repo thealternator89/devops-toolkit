@@ -110,12 +110,16 @@ npm run make
 
 ```text
 .
+├── assets/             # Static assets (logos, icons)
+├── docs/               # Technical documentation
 ├── src/
 │   ├── main/           # Main process logic (Node.js environment)
 │   │   ├── index.ts    # Main process entry point & IPC Handlers
 │   │   ├── preload.ts  # Preload script for IPC and secure bridge
 │   │   └── services/   # Encapsulated backend API services (Azure, Copilot, Confluence)
 │   └── renderer/       # Renderer process (React environment)
+│       ├── components/ # Shared React components
+│       ├── hooks/      # Custom React hooks (e.g., useCopilotModels)
 │       ├── pages/      # Application views (Menu, Settings, TestCaseWriter, StoryWriter)
 │       ├── App.tsx     # Main React component with Routing
 │       ├── index.css   # Global styles & Markdown overrides
