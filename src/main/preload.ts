@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { AppSettings, TicketData, ConfluencePageData } from '../types';
+import { AppSettings, TicketData, DocPageData } from '../types';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('get-settings'),
@@ -20,7 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchConfluencePage: (pageId: string) =>
     ipcRenderer.invoke('fetch-confluence-page', pageId),
   generateStories: (
-    pageData: ConfluencePageData,
+    pageData: DocPageData,
     context: string,
     modelOverride: string,
   ) => ipcRenderer.invoke('generate-stories', pageData, context, modelOverride),

@@ -17,7 +17,7 @@ export interface TicketData {
   acceptanceCriteria?: string;
 }
 
-export interface ConfluencePageData {
+export interface DocPageData {
   id: string;
   title: string;
   body: string;

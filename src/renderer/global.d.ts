@@ -1,7 +1,7 @@
 import {
   AppSettings,
   TicketData,
-  ConfluencePageData,
+  DocPageData,
   StoryData,
   CopilotAuth,
   CopilotModel,
@@ -16,9 +16,9 @@ export interface IElectronAPI {
     context: string,
     modelOverride: string,
   ) => Promise<string>;
-  fetchConfluencePage: (pageId: string) => Promise<ConfluencePageData>;
+  fetchConfluencePage: (pageId: string) => Promise<DocPageData>;
   generateStories: (
-    pageData: ConfluencePageData,
+    pageData: DocPageData,
     context: string,
     modelOverride: string,
   ) => Promise<StoryData[]>;

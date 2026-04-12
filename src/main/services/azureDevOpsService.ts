@@ -1,7 +1,9 @@
 import * as azdev from 'azure-devops-node-api';
 import { IWorkItemTrackingApi } from 'azure-devops-node-api/WorkItemTrackingApi';
+import { IssueTrackerProvider } from './providers/IssueTrackerProvider';
+import { TicketData } from '../../types';
 
-export class AzureDevOpsService {
+export class AzureDevOpsService implements IssueTrackerProvider {
   private witApi: IWorkItemTrackingApi | null = null;
 
   constructor(
@@ -18,22 +20,21 @@ export class AzureDevOpsService {
     return this.witApi;
   }
 
-  async fetchTicket(ticketId: string) {
+  async fetchTicket(ticketId: string): Promise<TicketData> {
     const witApi = await this.getApi();
 
     try {
       const workItem = await witApi.getWorkItem(parseInt(ticketId));
-      if (!workItem || !workItem.fields) {
+      if (!workItem || !workItem.fields || workItem.id === undefined) {
         throw new Error('Work item not found.');
       }
 
       return {
-        id: workItem.id,
+        id: workItem.id.toString(),
         title: workItem.fields['System.Title'],
         description: workItem.fields['System.Description'],
         acceptanceCriteria:
           workItem.fields['Microsoft.VSTS.Common.AcceptanceCriteria'],
-        project: workItem.fields['System.TeamProject'],
       };
     } catch (error) {
       console.error('Error fetching ticket:', error);
@@ -41,7 +42,7 @@ export class AzureDevOpsService {
     }
   }
 
-  async addComment(ticketId: string, text: string) {
+  async addComment(ticketId: string, text: string): Promise<void> {
     const witApi = await this.getApi();
     const document = [
       {
@@ -55,14 +56,14 @@ export class AzureDevOpsService {
         value: 'Markdown',
       },
     ];
-    return witApi.updateWorkItem(undefined, document, parseInt(ticketId));
+    await witApi.updateWorkItem(undefined, document, parseInt(ticketId));
   }
 
   async addChildTask(
     parentTicketId: string,
     title: string,
     description: string,
-  ) {
+  ): Promise<void> {
     const witApi = await this.getApi();
 
     const parentWorkItem = await witApi.getWorkItem(parseInt(parentTicketId));
@@ -92,7 +93,7 @@ export class AzureDevOpsService {
       },
     ];
 
-    return witApi.createWorkItem(undefined, document, project, 'Task');
+    await witApi.createWorkItem(undefined, document, project, 'Task');
   }
 
   async createProductBacklogItem(
@@ -100,7 +101,7 @@ export class AzureDevOpsService {
     title: string,
     description: string,
     acceptanceCriteria: string,
-  ) {
+  ): Promise<void> {
     const witApi = await this.getApi();
 
     const parentWorkItem = await witApi.getWorkItem(parseInt(parentTicketId));
@@ -140,7 +141,7 @@ export class AzureDevOpsService {
       },
     ];
 
-    return witApi.createWorkItem(
+    await witApi.createWorkItem(
       undefined,
       document,
       project,
