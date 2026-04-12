@@ -33,7 +33,7 @@ export class CopilotService {
   private client: any = null;
   private approveAll: any = null;
   private session: any = null;
-  private model = 'gpt-4.1';
+  private model: string = 'gpt-4.1';
 
   setModel(model: string) {
     if (model && model !== this.model) {

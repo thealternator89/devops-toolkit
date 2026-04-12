@@ -62,8 +62,8 @@ function trimProperties(
   obj: Record<string, string | undefined>,
 ): Record<string, string | undefined> {
   const out: Record<string, string> = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key)) {
       out[key] = obj[key]?.toString().trim();
     }
   }
@@ -81,7 +81,7 @@ ipcMain.handle('save-settings', async (event, settings: AppSettings) => {
   copilotService.setModel(sanitizedSettings.copilotModel || 'gpt-4.1');
 
   // Apply theme immediately
-  const theme = sanitizedSettings.theme || 'auto';
+  const theme = sanitizedSettings.theme ?? 'auto';
   nativeTheme.themeSource = theme === 'auto' ? 'system' : theme;
 
   // Invalidate services so they get re-created on the next fetch with new credentials
@@ -218,8 +218,8 @@ const createWindow = (): void => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
   const s = await initStore();
-  const settings = (s.get('settings') || {}) as AppSettings;
-  const theme = settings.theme || 'auto';
+  const settings = (s.get('settings') ?? {}) as AppSettings;
+  const theme = settings.theme ?? 'auto';
   nativeTheme.themeSource = theme === 'auto' ? 'system' : theme;
   createWindow();
 });
