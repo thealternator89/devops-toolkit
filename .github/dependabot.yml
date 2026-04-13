@@ -4,3 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      eslint-packages:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
